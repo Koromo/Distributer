@@ -50,7 +50,7 @@ MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
     // Distribute with easy
     for (it = markersHead; it; it = it->next)
     {
-        numMarkFiles = numMarkFilesParRate * it->rate + EPSILON;
+        numMarkFiles = (int)(numMarkFilesParRate * it->rate + EPSILON);
         for (int i = 0; i < numMarkFiles; ++i)
         {
             it->files = insertFileNode(it->files, removeFrontFileNode(&filesHead));
