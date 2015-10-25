@@ -26,10 +26,10 @@ void printMarkers(const MarkerNode* head)
 // Distribute files
 MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
 {
-    float sumRate;
+    float sumRatio;
     int numFiles;
     int numMarkers;
-    int numMarkFilesParRate;
+    int numMarkFilesParRatio;
     int numMarkFiles;
     MarkerNode* it;
     MarkerNode* tmp;
@@ -37,20 +37,20 @@ MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
     int i;
     int r;
 
-    // Calculate count of mark files par rate
-    sumRate = 0;
+    // Calculate count of mark files par ratio
+    sumRatio = 0;
     for (it = markersHead; it; it = it->next)
     {
-        sumRate +=it->rate;
+        sumRatio +=it->ratio;
     }
     
     numFiles = fileListLength(filesHead);
-    numMarkFilesParRate = (int)(numFiles / sumRate + EPSILON);
+    numMarkFilesParRatio = (int)(numFiles / sumRatio + EPSILON);
 
     // Distribute with easy
     for (it = markersHead; it; it = it->next)
     {
-        numMarkFiles = (int)(numMarkFilesParRate * it->rate + EPSILON);
+        numMarkFiles = (int)(numMarkFilesParRatio * it->ratio + EPSILON);
         for (int i = 0; i < numMarkFiles; ++i)
         {
             it->files = insertFileNode(it->files, removeFrontFileNode(&filesHead));

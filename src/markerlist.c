@@ -12,7 +12,7 @@ void freeMarkerList(MarkerNode* head)
     }
 }
 
-MarkerNode* makeMarkerNode(double rate, const char* name)
+MarkerNode* makeMarkerNode(double ratio, const char* name)
 {
     MarkerNode* node = (MarkerNode*)malloc(sizeof(MarkerNode));
     if (!node)
@@ -21,7 +21,7 @@ MarkerNode* makeMarkerNode(double rate, const char* name)
         exit(EXIT_FAILURE);
     }
 
-    node->rate = rate;
+    node->ratio = ratio;
     node->name = name;
     node->files = NULL;
     node->next = NULL;
