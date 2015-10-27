@@ -26,7 +26,11 @@ void printMarkers(FILE* file, const MarkerNode* head)
 // Distribute files
 MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
 {
+<<<<<<< HEAD
     double sumRatio;
+=======
+    float sumRatio;
+>>>>>>> ae3a2eefb39ad9cf850ac2162bdd394fb7621888
     int numFiles;
     int numMarkers;
     int numMarkFilesParRatio;
