@@ -7,18 +7,18 @@
 #define EPSILON 0.00001
 
 // Output put each marker informations
-void printMarkers(const MarkerNode* head)
+void printMarkers(FILE* file, const MarkerNode* head)
 {
     const MarkerNode* m;
     const FileNode* f;
 
-    printf("Name\tDate\t\tNumber\n");
+    fprintf(file, "Name\tDate\t\tNumber\n");
     for (m = head; m; m = m->next)
     {
-        printf("\n");
+        fprintf(file, "\n");
         for (f = m->files; f; f = f->next)
         {
-            printf("-%s\t%s\t%.7s\n", m->name, f->date, f->name);
+            fprintf(file, "-%s\t%s\t%.7s\n", m->name, f->date, f->name);
         }
     }
 }
@@ -26,7 +26,7 @@ void printMarkers(const MarkerNode* head)
 // Distribute files
 MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
 {
-    float sumRatio;
+    double sumRatio;
     int numFiles;
     int numMarkers;
     int numMarkFilesParRatio;
@@ -41,7 +41,7 @@ MarkerNode* distribute(FileNode* filesHead, MarkerNode* markersHead)
     sumRatio = 0;
     for (it = markersHead; it; it = it->next)
     {
-        sumRatio +=it->ratio;
+        sumRatio += it->ratio;
     }
     
     numFiles = fileListLength(filesHead);
@@ -81,18 +81,21 @@ int main(int argv, char** argc)
     FileNode* filesHead;
     MarkerNode* markersHead;
     MarkerNode* it;
-    const char* path;
+    const char* homeworksPath;
+    const char* outputPath;
     FILE* file;
 
     // Check argments
-    if (argv != 2)
+    if (argv != 3)
     {
-        printf("Usage: %s files markers\n", argc[0]);
+        printf("Usage: %s files out\n", argc[0]);
         printf("files: Target files path.\n");
+        printf("out: Output path.\n");
         exit(EXIT_FAILURE);
     }
 
-    path = argc[1];
+    homeworksPath = argc[1];
+    outputPath = argc[2];
 
     // Initialize marker list
     /// TODO: I want to read markers from file
@@ -107,7 +110,7 @@ int main(int argv, char** argc)
     rand();
 
     // Do distribution
-    filesHead = makeFileList(path);
+    filesHead = makeFileList(homeworksPath);
     markersHead = distribute(filesHead, markersHead);
     markerListLength(markersHead);
     markersHead = sortMarkerList(markersHead, markerListLength(markersHead));
@@ -117,9 +120,16 @@ int main(int argv, char** argc)
     }
 
     // Show result
-    printf("SUCCEEDED\n\n");
-    printMarkers(markersHead);
+    file = fopen(outputPath, "w");
+    if (!file)
+    {
+        printf("Failed to open file (%s)\n.", outputPath);
+        exit(EXIT_FAILURE);
+    }
 
+    printMarkers(file, markersHead);
+
+    fclose(file);
     freeMarkerList(markersHead);
     freeFileList(filesHead);
 

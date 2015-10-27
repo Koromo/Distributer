@@ -25,7 +25,15 @@ out_path=`fullpath $2`
 table_path="${out_path}/table"
 
 mkdir $out_path
-"${tool_path}/distgen" $homeworks_path > $table_path
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+"${tool_path}/distgen" $homeworks_path $table_path
+if [ $? -ne 0 ]; then
+    echo 10
+    exit 1
+fi
 
 cd $out_path
 python "${tool_path}/rezip.py" $homeworks_path $table_path

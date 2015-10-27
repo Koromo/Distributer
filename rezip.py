@@ -16,9 +16,6 @@ table_path = argv[2]
 
 # Open table file
 table_file = open(table_path, "r")
-if (table_file.readline() != "SUCCEEDED\n"):
-    print "Failed to rezip."
-    exit()
 
 # Create directories for each markers into output directory
 marker_names = set()
@@ -52,7 +49,6 @@ for line in table_file:
 
     # Try copy file that has number in filename if failed to unzip
     if ret != 0:
-        print "Try copy."
         subprocess.call("cp " + src_path + "* " + dest_path, shell = True)
 
 # Zip each marker directories
