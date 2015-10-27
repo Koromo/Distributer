@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define EPSILON 0.00001
 
@@ -21,6 +22,52 @@ void printMarkers(FILE* file, const MarkerNode* head)
             fprintf(file, "-%s\t%s\t%.7s\n", m->name, f->date, f->name);
         }
     }
+}
+
+// Returns dynamic string
+const char* dynamicCopy(const char* str)
+{
+    int length;
+    char* copy;
+
+    length = strlen(str);
+    copy = (char*)malloc(sizeof(char) * length + 1);
+    if (!copy)
+    {
+        printf("Failed to allocate memory.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(copy, str);
+    
+    return copy;
+}
+
+// Read markers from file
+MarkerNode* readMarkers(const char* path)
+{
+    MarkerNode* head;
+    char name[20];
+    double ratio;
+    FILE* file;
+
+    file = fopen(path, "r");
+    if (!file)
+    {
+        printf("Failed to open file (%s).\n", path);
+        exit(EXIT_FAILURE);
+    }
+
+    head = NULL;
+    while (fscanf(file, "%19s%lf", name, &ratio) != EOF)
+    {
+        fgetc(file); // Skip '\n'
+        head = insertMarkerNode(head, makeMarkerNode(dynamicCopy(name), ratio));
+    }
+
+    fclose(file);
+
+    return head;
 }
 
 // Distribute files
@@ -81,28 +128,27 @@ int main(int argv, char** argc)
     FileNode* filesHead;
     MarkerNode* markersHead;
     MarkerNode* it;
+    const char* markersPath;
     const char* homeworksPath;
-    const char* outputPath;
-    FILE* file;
+    const char* outPath;
+    FILE* outFile;
 
     // Check argments
-    if (argv != 3)
+    if (argv != 4)
     {
-        printf("Usage: %s files out\n", argc[0]);
+        printf("Usage: %s markers files out\n", argc[0]);
+        printf("markers: Markers file path.\n");
         printf("files: Target files path.\n");
         printf("out: Output path.\n");
         exit(EXIT_FAILURE);
     }
 
-    homeworksPath = argc[1];
-    outputPath = argc[2];
+    markersPath = argc[1];
+    homeworksPath = argc[2];
+    outPath = argc[3];
 
     // Initialize marker list
-    /// TODO: I want to read markers from file
-    markersHead = NULL;
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode("C", 0.5));
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode("B", 1));
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode("A", 1));
+    markersHead = readMarkers(markersPath);
 
     // Initialize random
     srand(time(NULL));
@@ -120,16 +166,22 @@ int main(int argv, char** argc)
     }
 
     // Show result
-    file = fopen(outputPath, "w");
-    if (!file)
+    outFile = fopen(outPath, "w");
+    if (!outFile)
     {
-        printf("Failed to open file (%s)\n.", outputPath);
+        printf("Failed to open file (%s)\n.", outPath);
         exit(EXIT_FAILURE);
     }
 
-    printMarkers(file, markersHead);
+    printMarkers(outFile, markersHead);
 
-    fclose(file);
+    fclose(outFile);
+
+    for (it = markersHead; it; it = it->next)
+    {
+        free((void*)it->name);
+    }
+
     freeMarkerList(markersHead);
     freeFileList(filesHead);
 
