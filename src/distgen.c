@@ -100,9 +100,9 @@ int main(int argv, char** argc)
     // Initialize marker list
     /// TODO: I want to read markers from file
     markersHead = NULL;
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode(0.5, "C"));
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode(1, "B"));
-    markersHead = insertMarkerNode(markersHead, makeMarkerNode(1, "A"));
+    markersHead = insertMarkerNode(markersHead, makeMarkerNode("C", 0.5));
+    markersHead = insertMarkerNode(markersHead, makeMarkerNode("B", 1));
+    markersHead = insertMarkerNode(markersHead, makeMarkerNode("A", 1));
 
     // Initialize random
     srand(time(NULL));

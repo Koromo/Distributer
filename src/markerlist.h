@@ -7,8 +7,8 @@
 // Marker node
 typedef struct MarkerNode_s
 {
-    double ratio;
     const char* name;
+    double ratio;
     FileNode* files;
     struct MarkerNode_s* next;
 } MarkerNode;
@@ -17,7 +17,7 @@ typedef struct MarkerNode_s
 void freeMarkerList(MarkerNode* head);
 
 // Create marker node
-MarkerNode* makeMarkerNode(double ratio, const char* name);
+MarkerNode* makeMarkerNode(const char* name, double ratio);
 
 // Returns length of marker list
 size_t markerListLength(const MarkerNode* head);
