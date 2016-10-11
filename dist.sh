@@ -26,19 +26,22 @@ homeworks_path=`fullpath $2`
 out_path=`fullpath $3`
 table_path="${out_path}/table"
 
-mkdir $out_path
-if [ $? -ne 0 ]; then
-    exit 1
+if [ ! -d $out_path ]; then
+    mkdir $out_path
+    if [ $? -ne 0 ]; then
+        exit -1
+    fi
 fi
 
-"${tool_path}/distgen" $markers_path $homeworks_path $table_path
+"${tool_path}/tablegen" $markers_path $homeworks_path > $table_path
 if [ $? -ne 0 ]; then
-    echo 10
-    exit 1
+    exit -1
 fi
 
 cd $out_path
-python "${tool_path}/rezip.py" $homeworks_path $table_path
+python "${tool_path}/collect.py" $homeworks_path $table_path
 cd $cur_path
+
+chmod -R a+rwx $out_path
 
 exit 0

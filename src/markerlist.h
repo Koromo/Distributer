@@ -4,31 +4,19 @@
 #include "filelist.h"
 #include <stddef.h>
 
-// Marker node
-typedef struct MarkerNode_s
+typedef struct Marker_t
 {
     const char* name;
     double ratio;
-    FileNode* files;
-    struct MarkerNode_s* next;
-} MarkerNode;
+    File* files;
+    struct Marker_t* next;
+} Marker;
 
-// Free memory of marker list
-void freeMarkerList(MarkerNode* head);
-
-// Create marker node
-MarkerNode* makeMarkerNode(const char* name, double ratio);
-
-// Returns length of marker list
-size_t markerListLength(const MarkerNode* head);
-
-// Insert marker node to front of list
-MarkerNode* insertMarkerNode(MarkerNode* head, MarkerNode* node);
-
-// Remove i'th marker node
-MarkerNode* removeMarkerNode(MarkerNode** head, size_t i);
-
-// Sort marker list by name
-MarkerNode* sortMarkerList(MarkerNode* head, size_t length);
+void freeMarkers(Marker* head);
+Marker* makeMarker(const char* name, double ratio);
+size_t numMarkers(const Marker* head);
+Marker* insertMarker(Marker* head, Marker* node);
+Marker* removeMarker(Marker** head, size_t i);
+Marker* sortMarkers(Marker* head, size_t length);
 
 #endif

@@ -1,40 +1,37 @@
 #include "filelist.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-FileNode* insertFileNode(FileNode* head, FileNode* node)
+File* insertFile(File* head, File* node)
 {
     node->next = head;
     return node;
 }
 
-FileNode* removeFrontFileNode(FileNode** head)
+File* removeFrontFile(File** head)
 {
-    FileNode* removed;
-    removed = *head;
+    File* const removed = *head;
     *head = (*head)->next;
     removed->next = NULL;
     return removed;
 }
 
-// Return i'th node
-static FileNode* getNode(FileNode* head, size_t i)
+static File* get(File* head, size_t i)
 {
     if (i == 0)
     {
         return head;
     }
-    return getNode(head->next, i - 1);
+    return get(head->next, i - 1);
 }
 
-// Marge file list
-static FileNode* marge(FileNode* l, FileNode* r)
+static File* marge(File* l, File* r)
 {
-    FileNode* head;
-    FileNode* tail;
-    FileNode* less;
+    File* head;
+    File* tail;
+    File* less;
     int comp;
 
     head = NULL;
@@ -42,16 +39,12 @@ static FileNode* marge(FileNode* l, FileNode* r)
 
     while (l && r)
     {
-        // Compare head of l and r by number
-        comp = strncmp(l->name, r->name, 7);
-
-        // Recompare by date if the two has same number
+        comp = strncmp(l->number, r->number, 7);
         if (comp == 0)
         {
             comp = strcmp(l->date, r->date);
         }
 
-        // Add less node to marged list
         if (comp < 0)
         {
             less = l;
@@ -62,6 +55,7 @@ static FileNode* marge(FileNode* l, FileNode* r)
             less = r;
             r = r->next;
         }
+        less->next = NULL;
 
         if (!head)
         {
@@ -72,9 +66,8 @@ static FileNode* marge(FileNode* l, FileNode* r)
             tail->next = less;
         }
         tail = less;
-        tail->next = NULL;
     }
-    // Add remain nodes to marged list
+
     if (l)
     {
         tail->next = l;
@@ -87,79 +80,74 @@ static FileNode* marge(FileNode* l, FileNode* r)
     return head;
 }
 
-FileNode* sortFileList(FileNode* head, size_t length)
+File* sortFiles(File* head, size_t length)
 {
     size_t half;
-    FileNode* left;
-    FileNode* leftTail;
-    FileNode* right;
+    File* left;
+    File* leftTail;
+    File* right;
 
     if (length <= 1)
     {
         return head;
     }
 
-    // Devide at half position
     half = length / 2;
     left = head;
-    leftTail = getNode(left, half - 1);
+    leftTail = get(left, half - 1);
     right = leftTail->next;
     leftTail->next = NULL;
     
-    left = sortFileList(left, half);
-    right = sortFileList(right, length - half);
+    left = sortFiles(left, half);
+    right = sortFiles(right, length - half);
 
     return marge(left, right);
 }
 
-size_t fileListLength(const FileNode* head)
+size_t numFiles(const File* head)
 {
     if (!head)
     {
         return 0;
     }
-    return fileListLength(head->next) + 1;
+    return numFiles(head->next) + 1;
 }
 
-void freeFileList(FileNode* head)
+void freeFiles(File* head)
 {
     if (head)
     {
-        freeFileList(head->next);
+        freeFiles(head->next);
         free(head);
     }
 }
 
-// Create node
-static FileNode* makeNode(const char* filename, const char* date)
+static File* make(const char* number, const char* date)
 {
-    FileNode* node = (FileNode*)malloc(sizeof(FileNode));
+    File* const node = (File*)malloc(sizeof(File));
     if (!node)
     {
-        printf("Failed to allocate memory.\n");
+        fprintf(stderr, "Memerror.\n");
         exit(EXIT_FAILURE);
     }
-    node->name = filename;
+    node->number = number;
     node->date = date;
     node->next = NULL;
     return node;
 }
 
-// Update to uniqued list by number
-static FileNode* unique(FileNode* head)
+static File* unique(File* head)
 {
-    FileNode* removed;
+    File* removed;
 
     if (!head->next)
     {
         return head;
     }
 
-    // Recursive call about tails
     head->next = unique(head->next);
 
-    // Remove head if next of head has the same number
-    if (strncmp(head->name, head->next->name, 7) == 0)
+    if (strncmp(head->number, head->next->number, 7) == 0)
     {
         removed = head;
         head = head->next;
@@ -169,51 +157,45 @@ static FileNode* unique(FileNode* head)
     return head;
 }
 
-// Open directoty
-static DIR* openDirectory(const char* path)
+static DIR* openDir(const char* path)
 {
-    DIR* dir = opendir(path);
+    DIR* const dir = opendir(path);
     if (!dir)
     {
-        printf("Failed to open directory (%s).\n", path);
+        fprintf(stderr, "Failed to open directory (%s).\n", path);
         exit(EXIT_FAILURE);
     }
     return dir;
 }
 
-// Open local directory
-static DIR* openLocalDirectory(const char* parentPath, const char* basename)
+static DIR* openLocalDir(const char* inPath, const char* name)
 {
-    char* localPath;
-    size_t parentPathLength;
-    size_t localPathLength;
-    DIR* localDir;
+    char* totalPath;
+    const size_t inPathLength = strlen(inPath);
+    const size_t totalPathLength = inPathLength + strlen(name) + 1;
+    DIR* dir;
 
-    parentPathLength = strlen(parentPath);
-    localPathLength = parentPathLength + strlen(basename) + 1;
-
-    localPath = (char*)malloc(sizeof(char) * localPathLength + 1);
-    if (!localPath)
+    totalPath = (char*)malloc(sizeof(char) * totalPathLength + 1);
+    if (!totalPath)
     {
-        printf("Failed to allocate memory.");
+        fprintf(stderr, "Memerror.");
         exit(EXIT_FAILURE);
     }
 
-    localPath[0] = '\0';
-    strcat(localPath, parentPath);
-    strcat(localPath, "/");
-    strcat(localPath, basename);
+    totalPath[0] = '\0';
+    strcat(totalPath, inPath);
+    strcat(totalPath, "/");
+    strcat(totalPath, name);
 
-    localDir = openDirectory(localPath);
-    free(localPath);
+    dir = openDir(totalPath);
+    free(totalPath);
 
-    return localDir;
+    return dir;
 }
 
-// Create file list.
-static FileNode* makeFileListImpl(const char* date, DIR* dir)
+static File* makeFileListImpl(const char* date, DIR* dir)
 {
-    FileNode* head;
+    File* head;
     struct dirent* ent;
 
     head = NULL;
@@ -221,54 +203,55 @@ static FileNode* makeFileListImpl(const char* date, DIR* dir)
     {
         if (ent->d_name[0] != '.')
         {
-            head = insertFileNode(head, makeNode(ent->d_name, date));
+            head = insertFile(head, make(ent->d_name, date));
         }
     }
 
     return head;
 }
 
-// Returns back node
-static FileNode* getBackNode(FileNode* head)
+static File* back(File* head)
 {
-    if (!head->next)
+    if (head->next == NULL)
     {
         return head;
     }
-    return getBackNode(head->next);
+    return back(head->next);
 }
 
-FileNode* makeFileList(const char* path)
+File* makeFileList(const char* path)
 {
-    FileNode* head;
-    FileNode* newListHead;
-    FileNode* newListTail;
-    DIR* pathDir;
-    DIR* localDir;
-    struct dirent* pathEnt;
+    File* head;
+    File* tail;
+    File* list;
+    DIR* inPathDir;
+    DIR* dateDir;
+    struct dirent* inPathEnt;
 
-    // Open path directory
-    pathDir = openDirectory(path);
+    inPathDir = openDir(path);
 
     head = NULL;
-    for (pathEnt = readdir(pathDir); pathEnt; pathEnt = readdir(pathDir))
+    for (inPathEnt = readdir(inPathDir); inPathEnt; inPathEnt = readdir(inPathDir))
     {
-        // Open local directory
-        if (pathEnt->d_name[0] == '.')
+        if (inPathEnt->d_name[0] == '.')
         {
             continue;
         }
-        localDir = openLocalDirectory(path, pathEnt->d_name);
 
-        // Create file list.
-        newListHead = makeFileListImpl(pathEnt->d_name, localDir);
-        newListTail = getBackNode(newListHead);
-        newListTail->next = head;
-        head = newListHead;
+        dateDir = openLocalDir(path, inPathEnt->d_name);
+        list = makeFileListImpl(inPathEnt->d_name, dateDir);
+        if (!head)
+        {
+            head = list;
+        }
+        else
+        {
+            tail->next = list;
+        }
+        tail = back(list);
     }
 
-    // Make unique
-    head = sortFileList(head, fileListLength(head));
+    head = sortFiles(head, numFiles(head));
     head = unique(head);
 
     return head;

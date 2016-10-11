@@ -3,21 +3,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-void freeMarkerList(MarkerNode* head)
+void freeMarkers(Marker* head)
 {
     if (head)
     {
-        freeMarkerList(head->next);
+        freeMarkers(head->next);
         free(head);
     }
 }
 
-MarkerNode* makeMarkerNode(const char* name, double ratio)
+Marker* makeMarker(const char* name, double ratio)
 {
-    MarkerNode* node = (MarkerNode*)malloc(sizeof(MarkerNode));
+    Marker* node = (Marker*)malloc(sizeof(Marker));
     if (!node)
     {
-        printf("Failed to allocate memory.\n");
+        fprintf(stderr, "Memerror.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -29,35 +29,34 @@ MarkerNode* makeMarkerNode(const char* name, double ratio)
     return node;
 }
 
-size_t markerListLength(const MarkerNode* head)
+size_t numMarkers(const Marker* head)
 {
     if (!head)
     {
         return 0;
     }
-    return markerListLength(head->next) + 1;
+    return numMarkers(head->next) + 1;
 }
 
-MarkerNode* insertMarkerNode(MarkerNode* head, MarkerNode* node)
+Marker* insertMarker(Marker* head, Marker* marker)
 {
-    node->next = head;
-    return node;
+    marker->next = head;
+    return marker;
 }
 
-// Returns i'th node
-static MarkerNode* getNode(MarkerNode* head, size_t i)
+static Marker* get(Marker* head, size_t i)
 {
     if (i == 0)
     {
         return head;
     }
-    return getNode(head->next, i - 1);
+    return get(head->next, i - 1);
 }
 
-MarkerNode* removeMarkerNode(MarkerNode** head, size_t i)
+Marker* removeMarker(Marker** head, size_t i)
 {
-    MarkerNode* tmp;
-    MarkerNode* removed;
+    Marker* tmp;
+    Marker* removed;
     if (i == 0)
     {
         removed = (*head);
@@ -65,7 +64,7 @@ MarkerNode* removeMarkerNode(MarkerNode** head, size_t i)
     }
     else
     {
-        tmp = getNode(*head, i - 1);
+        tmp = get(*head, i - 1);
         removed = tmp->next;
         tmp->next = removed->next;
     }
@@ -73,19 +72,17 @@ MarkerNode* removeMarkerNode(MarkerNode** head, size_t i)
     return removed;
 }
 
-// Marge marker list
-static MarkerNode* marge(MarkerNode* l, MarkerNode* r)
+static Marker* marge(Marker* l, Marker* r)
 {
-    MarkerNode* head;
-    MarkerNode* tail;
-    MarkerNode* less;
+    Marker* head;
+    Marker* tail;
+    Marker* less;
 
     head = NULL;
     tail = NULL;
 
     while (l && r)
     {
-        // Compare by name
         if (strcmp(l->name, r->name) < 0)
         {
             less = l;
@@ -97,7 +94,8 @@ static MarkerNode* marge(MarkerNode* l, MarkerNode* r)
             r = r->next;
         }
 
-        // Add less node to marged list
+        less->next = NULL;
+
         if (!head)
         {
             head = less;
@@ -107,10 +105,8 @@ static MarkerNode* marge(MarkerNode* l, MarkerNode* r)
             tail->next = less;
         }
         tail = less;
-        tail->next = NULL;
     }
 
-    // Add remain nodes to marged list
     if (l)
     {
         tail->next = l;
@@ -123,27 +119,26 @@ static MarkerNode* marge(MarkerNode* l, MarkerNode* r)
     return head;
 }
 
-MarkerNode* sortMarkerList(MarkerNode* head, size_t length)
+Marker* sortMarkers(Marker* head, size_t length)
 {
     size_t half;
-    MarkerNode* left;
-    MarkerNode* right;
-    MarkerNode* leftTail;
+    Marker* left;
+    Marker* right;
+    Marker* leftTail;
 
     if (length <= 1)
     {
         return head;
     }
 
-    // Devide at half position
     half = length / 2;
     left = head;
-    leftTail = getNode(left, half - 1);
+    leftTail = get(left, half - 1);
     right = leftTail->next;
     leftTail->next = NULL;
     
-    left = sortMarkerList(left, half);
-    right = sortMarkerList(right, length - half);
+    left = sortMarkers(left, half);
+    right = sortMarkers(right, length - half);
 
     return marge(left, right);
 }
