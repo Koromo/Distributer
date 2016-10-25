@@ -34,9 +34,13 @@ for line in table_file:
     number = tokens[2][:-1]
 
     cp_src_path = homeworks_path + "/" + date + "/" + number
-    cp_dest_path = marker_name + "/" + number
-    subprocess.call(["mkdir", cp_dest_path])
-    subprocess.call("cp -r " + cp_src_path + "* " + cp_dest_path, shell = True)
+    dest_path = marker_name + "/" + number
+    zip_dest_path = dest_path + "/" + number
+    subprocess.call(["mkdir", dest_path])
+    subprocess.call("cp -r " + cp_src_path + "* " + dest_path, shell = True)
+    ret = subprocess.call(["unzip", "-d", zip_dest_path, zip_dest_path + ".zip"])
+    if ret == 0:
+        subprocess.call(["rm", zip_dest_path + ".zip"])
 
 for name in marker_names:
     subprocess.call(["zip", "-r", name + ".zip", name])
